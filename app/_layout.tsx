@@ -31,7 +31,7 @@ export default function RootLayout() {
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
         <Stack.Screen name="learn" options={{ headerShown: false }} />
       </Stack>
-      <Redirect href="/learn" />
+      <Redirect href="/onboarding" />
     </>
   );
 }

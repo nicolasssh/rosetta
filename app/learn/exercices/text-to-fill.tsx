@@ -4,20 +4,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../../components/Button';
 
 const sentenceParts = [
-  'The company ',
+  "L'entreprise ",
   '____', // 0
-  ' a significant loss last quarter, but the CEO remains ',
+  ' une perte importante le trimestre dernier, mais le PDG reste ',
   '____', // 1
-  ' about future growth.'
+  ' pour l’avenir.'
 ];
 
 const answers = [
-  'reported',
-  'optimistic',
+  'a annoncé',
+  'optimiste',
 ];
 
 const options = [
-  'reported', 'doubtful', 'announced', 'experienced', 'concerned', 'optimistic', 'worried'
+  'a annoncé', 'douteux', 'a rapporté', 'a connu', 'préoccupé', 'optimiste', 'inquiet'
 ];
 
 export default function TextToFill() {
@@ -56,11 +56,11 @@ export default function TextToFill() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Text-to-fill</Text>
-      <Text style={styles.subtitle}>Complete the sentences</Text>
+      <Text style={styles.title}>Texte à trous</Text>
+      <Text style={styles.subtitle}>Complète les phrases</Text>
       <View style={styles.card}>
         <View style={styles.sentenceRow}>
-          <Text style={styles.sentenceText}>The company </Text>
+          <Text style={styles.sentenceText}>L'entreprise </Text>
           <TouchableOpacity
             style={[styles.blank, selected === 0 && styles.blankSelected]}
             onPress={() => handleBlankPress(0)}
@@ -72,7 +72,7 @@ export default function TextToFill() {
               <Text style={styles.blankPlaceholder}>______</Text>
             )}
           </TouchableOpacity>
-          <Text style={styles.sentenceText}> a significant loss last quarter, but the CEO remains </Text>
+          <Text style={styles.sentenceText}> une perte importante le trimestre dernier, mais le PDG reste </Text>
           <TouchableOpacity
             style={[styles.blank, selected === 1 && styles.blankSelected]}
             onPress={() => handleBlankPress(1)}
@@ -84,7 +84,7 @@ export default function TextToFill() {
               <Text style={styles.blankPlaceholder}>______</Text>
             )}
           </TouchableOpacity>
-          <Text style={styles.sentenceText}> about future growth.</Text>
+          <Text style={styles.sentenceText}> pour l’avenir.</Text>
         </View>
       </View>
       <View style={styles.optionsContainer}>
