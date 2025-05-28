@@ -1,10 +1,11 @@
+import { router } from "expo-router";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import Input from "../components/Input";
 
-export default function OnboardingIdentity() {
+export default function OnboardingSignup() {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [secondPassword, setSecondPassword] = useState<string>('');
@@ -49,7 +50,7 @@ export default function OnboardingIdentity() {
       <Button
         text="Next step"
         onPress={() => {
-          // router.push('/onboarding/interests');
+          router.push('/onboarding/ready');
         }}
         disabled={!email || email === '' || !password || password === '' || !secondPassword || secondPassword === '' || password !== secondPassword}
       />

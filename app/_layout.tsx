@@ -24,11 +24,14 @@ export default function RootLayout() {
 
   return (
     <>
-      <Stack>
+      <Stack screenOptions={{
+        headerShown: false,
+      }}>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+        <Stack.Screen name="learn" options={{ headerShown: false }} />
       </Stack>
-      <Redirect href="/onboarding" />
+      <Redirect href="/learn" />
     </>
   );
 }
