@@ -8,6 +8,10 @@
     "scheme": "rosetta",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "fonts": {
+      "Outfit": "./assets/fonts/Outfit-Regular.ttf",
+      "OutfitBold": "./assets/fonts/Outfit-Bold.ttf"
+    },
     "ios": {
       "supportsTablet": true
     },
