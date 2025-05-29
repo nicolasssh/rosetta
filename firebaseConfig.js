@@ -1,7 +1,7 @@
 // firebaseConfig.js
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeApp } from 'firebase/app';
-import { getReactNativePersistence, initializeAuth } from 'firebase/auth'; // Modifié ici
+import { createUserWithEmailAndPassword, getAuth, getReactNativePersistence, initializeAuth } from 'firebase/auth'; // Modifié ici
 import { doc, getFirestore, updateDoc } from 'firebase/firestore';
 import { Alert } from 'react-native';
 
@@ -50,13 +50,9 @@ const updateDocumentInFirestore = async (collectionName, documentId , dataToUpda
 const createUserWithEmailAndPasswordFirebase = async (email, password) => {
   try {
     // Tente de créer l'utilisateur avec email et mot de passe
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(getAuth(), email, password);
     // L'utilisateur a été créé avec succès
     const user = userCredential.user;
-
-    Alert.alert("Succès", `Compte créé avec l'ID : ${user.uid}`);
-    console.log("Utilisateur créé avec succès :", user.uid);
-
     return user.uid; // Retourne l'UID de l'utilisateur
   } catch (error) {
     let errorMessage = "Une erreur inconnue est survenue lors de la création du compte.";
@@ -76,12 +72,12 @@ const createUserWithEmailAndPasswordFirebase = async (email, password) => {
         errorMessage = "Le mot de passe est trop faible. Il doit contenir au moins 6 caractères.";
         break;
       default:
-        console.error("Erreur lors de la création du compte :", error.code, error.message);
+        console.error("Error while creating the account :", error.code, error.message);
         errorMessage = `Erreur : ${error.message}`;
         break;
     }
 
-    Alert.alert("Erreur de création de compte", errorMessage);
+    Alert.alert("Erreur while creating the account : ", errorMessage);
     return null; // Retourne null en cas d'échec
   }
 };
