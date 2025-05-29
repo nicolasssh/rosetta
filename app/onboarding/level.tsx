@@ -52,9 +52,9 @@ export default function OnboardingLevel() {
       <Select
         style={{ marginBottom: 'auto', marginTop: 20 }}
         options={[
-          { label: 'Beginner', value: '1' },
-          { label: 'Experimented', value: '2' },
-          { label: 'Expert', value: '3' },
+          { label: 'Beginner', value: 'beginner' },
+          { label: 'Intermediate', value: 'intermediate' },
+          { label: 'Advanced', value: 'advaced' },
         ]}
         label="Select your level"
         onSelectionChange={(value) => {
