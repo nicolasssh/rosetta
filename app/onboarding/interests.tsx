@@ -13,10 +13,9 @@ export default function OnboardingInterests() {
     { id: 'culture', label: 'Culture & Art 🎨' },
     { id: 'kitchen', label: 'Kitchen 🍳' },
     { id: 'literature', label: 'Literature & Poetry 📚' },
-    { id: 'sport', label: 'Sport & Wellness 🏃' },
-    { id: 'business', label: 'Business & Career 💼' },
-    { id: 'science', label: 'Science & Technology ⚗️' },
-    { id: 'daily', label: 'Daily conversations 💬' },
+    { id: 'sports', label: 'Sport & Wellness 🏃' },
+    { id: 'technology', label: 'Science & Technology ⚗️' },
+    { id: 'general', label: 'Daily conversations 💬' },
   ];
 
   const handleInterestToggle = (interestId: string, isChecked: boolean) => {
