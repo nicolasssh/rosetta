@@ -2,7 +2,7 @@
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { initializeApp } from 'firebase/app';
 import { createUserWithEmailAndPassword, getAuth, getReactNativePersistence, initializeAuth } from 'firebase/auth'; // Modifié ici
-import { doc, getFirestore, updateDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, getFirestore, query, updateDoc, where } from 'firebase/firestore';
 import { Alert } from 'react-native';
 
 // Your web app's Firebase configuration
@@ -82,5 +82,39 @@ const createUserWithEmailAndPasswordFirebase = async (email, password) => {
   }
 };
 
-export { app, auth, createUserWithEmailAndPasswordFirebase, db, updateDocumentInFirestore };
+const getUserDataByUserId = async (collectionName, userId) => {
+  try {
+    // Crée une référence à la collection
+    const usersCollectionRef = collection(db, collectionName);
+
+    // Crée une requête pour trouver les documents où le champ 'userID' correspond à l'userId fourni
+    const q = query(usersCollectionRef, where("userID", "==", userId));
+
+    // Exécute la requête
+    const querySnapshot = await getDocs(q);
+
+    const userData = [];
+    if (querySnapshot.empty) {
+      console.log("Aucun document trouvé pour l'utilisateur avec l'ID :", userId);
+      // Alert.alert("Information", "Aucune donnée trouvée pour cet utilisateur."); // Optionnel: alerter l'utilisateur
+      return null;
+    }
+
+    // Parcourt les documents trouvés et ajoute leurs données au tableau
+    querySnapshot.forEach((doc) => {
+      // doc.data() contient toutes les données du document
+      // doc.id est l'ID du document Firestore lui-même
+      userData.push({ id: doc.id, ...doc.data() });
+    });
+
+    console.log(`Données récupérées pour l'utilisateur ${userId} :`, userData);
+    return userData; // Retourne le tableau des documents trouvés
+  } catch (error) {
+    console.error("Erreur lors de la récupération des données utilisateur :", error);
+    Alert.alert("Erreur", "Impossible de récupérer les données utilisateur. Veuillez vérifier la console.");
+    return null; // Retourne null en cas d'erreur
+  }
+};
+
+export { app, auth, createUserWithEmailAndPasswordFirebase, db, getUserDataByUserId, updateDocumentInFirestore };
 

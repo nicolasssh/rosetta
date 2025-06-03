@@ -52,9 +52,9 @@ export default function OnboardingFrequency() {
       <Select
         style={{ marginBottom: 'auto', marginTop: 20 }}
         options={[
-          { label: '10-15min/day', value: '1' },
-          { label: '1h/day', value: '2' },
-          { label: '3h/day', value: '3' },
+          { label: '10-15min/day', value: '15' },
+          { label: '1h/day', value: '60' },
+          { label: '3h/day', value: '180' },
         ]}
         label="Select a frequency"
         onSelectionChange={(value) => {

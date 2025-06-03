@@ -1,4 +1,5 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from "expo-router";
 import React from 'react';
@@ -13,11 +14,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+
 const { width } = Dimensions.get('window');
 
 export default function HomePage() {
   const insets = useSafeAreaInsets();
-  const userName = "Nicolas";
+  const userName = "Nicolas"; // Remplace par la logique utilisateur si besoin
   const dailyProgress = 30;
   const dailyGoal = 60;
   const lessonProgress = 50;
@@ -100,10 +102,10 @@ export default function HomePage() {
     );
   };
 
+
   return (
     <View style={styles.container}>
       <StatusBar backgroundColor="#F5F5F7" barStyle="dark-content" />
-      
       <ScrollView 
         style={styles.scrollView}
         contentContainerStyle={[
@@ -122,7 +124,7 @@ export default function HomePage() {
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Daily challenge</Text>
             <Text style={styles.progressText}>
-              {dailyProgress} min / {dailyGoal / 60}h
+              {dailyProgress} min/ {dailyGoal / 60}h
             </Text>
           </View>
           {renderProgressBar(dailyProgress, dailyGoal, '#47D6B6')}
@@ -219,6 +221,10 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#4F63AC',
+  },
+  greetingContainer: { // Nouveau style pour le conteneur du salut/chargement
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   card: {
     backgroundColor: 'white',
