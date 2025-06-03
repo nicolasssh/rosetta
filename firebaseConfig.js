@@ -36,11 +36,8 @@ const updateDocumentInFirestore = async (collectionName, documentId , dataToUpda
     // Met à jour les champs spécifiés du document
     await updateDoc(docRef, dataToUpdate);
 
-    // Affiche une alerte de succès à l'utilisateur
-    console.log(`Document ${documentId} mis à jour.`);
-  } catch (e) {
+    } catch (e) {
     // Gère les erreurs lors de la mise à jour (par exemple, document non trouvé, permissions)
-    console.error("Erreur lors de la mise à jour du document : ", e);
     // Affiche une alerte d'erreur à l'utilisateur
     Alert.alert("Erreur", "Impossible de mettre à jour le document. Vérifiez si l'ID est correct et si le document existe.");
     throw e; // Propage l'erreur
@@ -72,7 +69,6 @@ const createUserWithEmailAndPasswordFirebase = async (email, password) => {
         errorMessage = "Le mot de passe est trop faible. Il doit contenir au moins 6 caractères.";
         break;
       default:
-        console.error("Error while creating the account :", error.code, error.message);
         errorMessage = `Erreur : ${error.message}`;
         break;
     }
@@ -95,7 +91,6 @@ const getUserDataByUserId = async (collectionName, userId) => {
 
     const userData = [];
     if (querySnapshot.empty) {
-      console.log("Aucun document trouvé pour l'utilisateur avec l'ID :", userId);
       // Alert.alert("Information", "Aucune donnée trouvée pour cet utilisateur."); // Optionnel: alerter l'utilisateur
       return null;
     }
@@ -107,10 +102,8 @@ const getUserDataByUserId = async (collectionName, userId) => {
       userData.push({ id: doc.id, ...doc.data() });
     });
 
-    console.log(`Données récupérées pour l'utilisateur ${userId} :`, userData);
     return userData; // Retourne le tableau des documents trouvés
   } catch (error) {
-    console.error("Erreur lors de la récupération des données utilisateur :", error);
     Alert.alert("Erreur", "Impossible de récupérer les données utilisateur. Veuillez vérifier la console.");
     return null; // Retourne null en cas d'erreur
   }

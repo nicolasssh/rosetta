@@ -1,29 +1,188 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+// import { DraxView } from 'react-native-drax';
 import Button from '../../components/Button';
+import { addExerciseTime, getCurrentUser, getUserProfile } from '../../controllers/userController';
 
-const sentenceParts = [
-  "L'entreprise ",
-  '____', // 0
-  ' une perte importante le trimestre dernier, mais le PDG reste ',
-  '____', // 1
-  ' pour l’avenir.'
-];
 
-const answers = [
-  'a annoncé',
-  'optimiste',
-];
 
-const options = [
-  'a annoncé', 'douteux', 'a rapporté', 'a connu', 'préoccupé', 'optimiste', 'inquiet'
-];
 
-export default function TextToFill() {
-  const [filled, setFilled] = useState<(string | null)[]>([null, null]);
+const API_URL = 'https://7d19-129-10-8-179.ngrok-free.app/exercises';
+
+const TextToFill: React.FC = () => {
+  const [sentenceParts, setSentenceParts] = useState<string[]>([]);
+  // answers: { blanksCorrection: string[], answer: string }
+  const [answers, setAnswers] = useState<{ blanksCorrection: string[], answer: string }>({ blanksCorrection: [], answer: '' });
+  const [options, setOptions] = useState<string[]>([]);
+  const [filled, setFilled] = useState<(string | null)[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchExercise = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const user = getCurrentUser();
+        if (!user) {
+          setError('Utilisateur non connecté');
+          setLoading(false);
+          return;
+        }
+        const profile = await getUserProfile(user.uid);
+        if (!profile) {
+          setError('Profil utilisateur non trouvé');
+          setLoading(false);
+          return;
+        }
+        const interests: string[] = Array.isArray(profile.interests) ? profile.interests : [];
+        const level: string = profile.level || 'beginner';
+        if (!interests.length) {
+          setError('Aucun intérêt trouvé dans le profil utilisateur');
+          setLoading(false);
+          return;
+        }
+        // Choisir un intérêt au hasard
+        const context = interests[Math.floor(Math.random() * interests.length)];
+        const body = {
+          type: 'fillInTheBlanks',
+          context,
+          level,
+          count: 1,
+        };
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        if (!response.ok) throw new Error('Erreur API');
+        const data = await response.json();
+        // On suppose que la réponse est un objet avec une clé exercises (tableau)
+        const exerciseObj = Array.isArray(data.exercises) ? data.exercises[0] : data;
+        // Découper le texte sur les blancs
+        const textParts = exerciseObj.text.split('___');
+        setSentenceParts(textParts);
+        setAnswers({
+          blanksCorrection: exerciseObj.blanksCorrection || [],
+          answer: exerciseObj.answer || ''
+        });
+        // Mélanger les options aléatoirement
+        const shuffle = (arr: string[]) => {
+          const a = [...arr];
+          for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+          }
+          return a;
+        };
+        setOptions(shuffle(exerciseObj.blanks || []));
+        setFilled(new Array((exerciseObj.blanks || []).length).fill(null));
+      } catch (e: any) {
+        setError(e.message || 'Erreur inconnue');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchExercise();
+  }, []);
+
+  // Ajout du temps à la fin de l'exercice (exemple : 7 minutes)
+  // Construit la phrase complète avec les réponses de l'utilisateur
+  const getCompletedSentence = () => {
+    let sentence = '';
+    for (let i = 0; i < sentenceParts.length; i++) {
+      sentence += sentenceParts[i];
+      if (i < filled.length) {
+        sentence += filled[i] ?? '______';
+      }
+    }
+    return sentence;
+  };
+
+  // Vérifie si la phrase complétée correspond à la correction de l'API
+  const isSentenceCorrect = () => {
+    if (!answers || !answers.answer) return false;
+    return getCompletedSentence().trim() === answers.answer.trim();
+  };
+
+  // handleFinish vérifie la phrase complète avec la correction
+  const handleFinish = async () => {
+    const user = getCurrentUser();
+    if (user) {
+      await addExerciseTime(user.uid, 7); // 7 minutes pour l'exemple
+    }
+    // Log des phrases pour debug
+    const userSentence = getCompletedSentence();
+    const expected = answers && answers.answer ? answers.answer : '';
+    setShowResult(true);
+  };
+
+  // Recharge une nouvelle question depuis l'API
+  const handleNextQuestion = async () => {
+    setShowResult(false);
+    setLoading(true);
+    setError(null);
+    try {
+      const user = getCurrentUser();
+      if (!user) {
+        setError('Utilisateur non connecté');
+        setLoading(false);
+        return;
+      }
+      const profile = await getUserProfile(user.uid);
+      if (!profile) {
+        setError('Profil utilisateur non trouvé');
+        setLoading(false);
+        return;
+      }
+      const interests: string[] = Array.isArray(profile.interests) ? profile.interests : [];
+      const level: string = profile.level || 'beginner';
+      if (!interests.length) {
+        setError('Aucun intérêt trouvé dans le profil utilisateur');
+        setLoading(false);
+        return;
+      }
+      // Choisir un intérêt au hasard
+      const context = interests[Math.floor(Math.random() * interests.length)];
+      const body = {
+        type: 'fillInTheBlanks',
+        context,
+        level,
+        count: 1,
+      };
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!response.ok) throw new Error('Erreur API');
+      const data = await response.json();
+      const exerciseObj = Array.isArray(data.exercises) ? data.exercises[0] : data;
+      const textParts = exerciseObj.text.split('___');
+      setSentenceParts(textParts);
+      setAnswers({
+        blanksCorrection: exerciseObj.blanksCorrection || [],
+        answer: exerciseObj.answer || ''
+      });
+      const shuffle = (arr: string[]) => {
+        const a = [...arr];
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      };
+      setOptions(shuffle(exerciseObj.blanks || []));
+      setFilled(new Array((exerciseObj.blanks || []).length).fill(null));
+    } catch (e: any) {
+      setError(e.message || 'Erreur inconnue');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Handle when a blank is pressed
   const handleBlankPress = (index: number) => {
@@ -51,83 +210,173 @@ export default function TextToFill() {
   // Disable option if already used
   const isOptionUsed = (option: string) => filled.includes(option);
 
-  const allFilled = filled.every((f) => f !== null);
-  const correctCount = filled.filter((f, i) => f === answers[i]).length;
+  const allFilled = filled.length > 0 && filled.every((f) => f !== null);
+  const correctCount = filled.filter((f, i) => f === (answers.blanksCorrection[i] || null)).length;
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingWrapper}>
+          <ActivityIndicator size="large" color="#47D6B6" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.title}>Error : {error}</Text>
+      </SafeAreaView>
+    );
+  }
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Texte à trous</Text>
-      <Text style={styles.subtitle}>Complète les phrases</Text>
-      <View style={styles.card}>
-        <View style={styles.sentenceRow}>
-          <Text style={styles.sentenceText}>L'entreprise </Text>
-          <TouchableOpacity
-            style={[styles.blank, selected === 0 && styles.blankSelected]}
-            onPress={() => handleBlankPress(0)}
-            activeOpacity={0.7}
-          >
-            {filled[0] ? (
-              <Text style={styles.blankText} onPress={() => handleRemove(0)}>{filled[0]}</Text>
-            ) : (
-              <Text style={styles.blankPlaceholder}>______</Text>
-            )}
-          </TouchableOpacity>
-          <Text style={styles.sentenceText}> une perte importante le trimestre dernier, mais le PDG reste </Text>
-          <TouchableOpacity
-            style={[styles.blank, selected === 1 && styles.blankSelected]}
-            onPress={() => handleBlankPress(1)}
-            activeOpacity={0.7}
-          >
-            {filled[1] ? (
-              <Text style={styles.blankText} onPress={() => handleRemove(1)}>{filled[1]}</Text>
-            ) : (
-              <Text style={styles.blankPlaceholder}>______</Text>
-            )}
-          </TouchableOpacity>
-          <Text style={styles.sentenceText}> pour l’avenir.</Text>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        <View style={styles.screenMargin}>
+          <Text style={styles.title}>Text-to-fill</Text>
+          <Text style={styles.subtitle}>Complete the sentence</Text>
+          <View style={styles.card}>
+            <View style={styles.sentenceRow}>
+              <Text style={styles.sentenceText}>
+                {sentenceParts.map((part, idx) => {
+                  if (idx < filled.length) {
+                    return (
+                      <React.Fragment key={idx}>
+                        {part}
+                        <Text
+                          style={[styles.blankInline, filled[idx] && styles.blankSelectedInline]}
+                          onPress={() => filled[idx] ? handleRemove(idx) : handleBlankPress(idx)}
+                        >
+                          {filled[idx] ? filled[idx] : '______'}
+                        </Text>
+                      </React.Fragment>
+                    );
+                  } else {
+                    return <React.Fragment key={idx}>{part}</React.Fragment>;
+                  }
+                })}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.optionsContainer}>
+            {options.map((option) => {
+              if (filled.includes(option)) return null;
+              return (
+                <View
+                  key={option}
+                  style={styles.option}
+                >
+                  <Text style={styles.optionText} onPress={() => handleOptionPress(option)}>{option}</Text>
+                </View>
+              );
+            })}
+          </View>
+          {showResult && (
+            <View style={{ marginBottom: 16 }}>
+              {isSentenceCorrect() ? (
+                <Text style={{ color: '#47D6B6', fontFamily: 'OutfitBold', fontSize: 18, textAlign: 'center' }}>
+                  Good ! Correct answer.
+                </Text>
+              ) : (
+                <>
+                  <Text style={{ color: '#E76F51', fontFamily: 'OutfitBold', fontSize: 18, textAlign: 'center', marginBottom: 8 }}>
+                    No! Incorrect answer.
+                  </Text>
+                  {Array.isArray(answers.blanksCorrection) && answers.blanksCorrection.length > 0 && (
+                    <View style={{ backgroundColor: '#F5F5F7', borderRadius: 10, padding: 10, marginBottom: 8 }}>
+                      <Text style={{ color: '#3D5A80', fontFamily: 'OutfitBold', fontSize: 16, marginBottom: 4, textAlign: 'center' }}>
+                        Why ?
+                      </Text>
+                      {answers.blanksCorrection.map((correction, idx) => (
+                        <Text key={idx} style={{ color: '#222', fontFamily: 'Outfit', fontSize: 15, marginBottom: 2 }}>
+                          {correction}
+                        </Text>
+                      ))}
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
+          )}
+          <Button
+            text={
+              showResult
+                ? 'Next question'
+                : 'Finish'
+            }
+            onPress={async () => {
+              if (!showResult) {
+                await handleFinish();
+              } else {
+                await handleNextQuestion();
+              }
+            }}
+            disabled={!allFilled && !showResult}
+          />
         </View>
-      </View>
-      <View style={styles.optionsContainer}>
-        {options.map((option) => (
-          <TouchableOpacity
-            key={option}
-            style={[styles.option, isOptionUsed(option) && styles.optionUsed]}
-            onPress={() => handleOptionPress(option)}
-            disabled={isOptionUsed(option)}
-          >
-            <Text style={styles.optionText}>{option}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-      <Button
-        text={showResult ? `Score: ${correctCount}/${answers.length}` : 'Continue'}
-        onPress={() => setShowResult(true)}
-        disabled={!allFilled || showResult}
-      />
+      </ScrollView>
     </SafeAreaView>
   );
-}
+};
+
+export default TextToFill;
 
 const styles = StyleSheet.create({
+  loadingWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
+  screenMargin: {
+    width: '100%',
+    paddingHorizontal: 20,
+    flex: 1,
+  },
   container: {
     flex: 1,
     backgroundColor: '#F5F5F7',
     alignItems: 'center',
-    paddingHorizontal: 20,
     paddingTop: 30,
   },
   sentenceRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'flex-start',
     marginBottom: 10,
+    width: '100%',
   },
   sentenceText: {
     fontSize: 16,
     fontFamily: 'Outfit',
     color: '#222',
     lineHeight: 24,
+    flexWrap: 'wrap',
+    flexShrink: 1,
+  },
+  blankInline: {
+    borderWidth: 2,
+    borderColor: '#B0B0B0',
+    borderStyle: 'dashed',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 2,
+    marginHorizontal: 2,
+    minWidth: 60,
+    minHeight: 24,
+    backgroundColor: '#F5F5F7',
+    color: '#B0B0B0',
+    fontFamily: 'Outfit',
+    fontSize: 16,
+    textAlign: 'center',
+    overflow: 'hidden',
+  },
+  blankSelectedInline: {
+    borderColor: '#47D6B6',
+    backgroundColor: '#E6F9F5',
+    color: '#3D5A80',
+    fontFamily: 'OutfitBold',
   },
   title: {
     color: '#3D5A80',

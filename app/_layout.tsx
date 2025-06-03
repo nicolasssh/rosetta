@@ -7,7 +7,9 @@ import { useFonts } from 'expo-font';
 import { Stack, router } from "expo-router"; // Ajout de Stack et router à l'import
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react'; // Ajout de useState
-import { ActivityIndicator, View } from 'react-native'; // Importation de l'indicateur de chargement et View
+import { ActivityIndicator, View } from 'react-native';
+import { DraxProvider } from 'react-native-drax';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Empêche l'écran de splash de se cacher automatiquement
 SplashScreen.preventAutoHideAsync();
@@ -44,7 +46,6 @@ export default function RootLayout() {
   // DEBUG: Ce useEffect s'exécutera chaque fois que l'état 'user' change,
   // affichant la valeur mise à jour.
   useEffect(() => {
-    console.log("État de l'utilisateur mis à jour :", user);
 
     // Effectue la redirection une fois que l'état d'authentification est déterminé
     if (!authLoading) {
@@ -66,9 +67,13 @@ export default function RootLayout() {
   // Si la vérification de l'authentification est toujours en cours, affiche un indicateur de chargement
   if (authLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <DraxProvider>
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#0000ff" />
+          </View>
+        </DraxProvider>
+      </GestureHandlerRootView>
     );
   }
 
@@ -76,16 +81,20 @@ export default function RootLayout() {
   // le Stack principal est rendu avec toutes les définitions d'écran.
   // Le `router.replace` dans le useEffect gère la navigation initiale.
   return (
-    <Stack screenOptions={{
-      headerShown: false, // Masque l'en-tête pour toutes les routes par défaut
-    }}>
-      {/* Déclaration de vos écrans. Ces écrans seront accessibles une fois la redirection initiale effectuée. */}
-      {/* Ils sont nécessaires pour qu'Expo Router connaisse les routes disponibles. */}
-      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-      <Stack.Screen name="learn" options={{ headerShown: false }} />
-      {/* Ajoutez d'autres écrans ici si nécessaire */}
-      {/* Par exemple, si vous avez une page d'accueil par défaut (app/index.tsx) */}
-      {/* <Stack.Screen name="index" options={{ headerShown: false }} /> */}
-    </Stack>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <DraxProvider>
+        <Stack screenOptions={{
+          headerShown: false, // Masque l'en-tête pour toutes les routes par défaut
+        }}>
+          {/* Déclaration de vos écrans. Ces écrans seront accessibles une fois la redirection initiale effectuée. */}
+          {/* Ils sont nécessaires pour qu'Expo Router connaisse les routes disponibles. */}
+          <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+          <Stack.Screen name="learn" options={{ headerShown: false }} />
+          {/* Ajoutez d'autres écrans ici si nécessaire */}
+          {/* Par exemple, si vous avez une page d'accueil par défaut (app/index.tsx) */}
+          {/* <Stack.Screen name="index" options={{ headerShown: false }} /> */}
+        </Stack>
+      </DraxProvider>
+    </GestureHandlerRootView>
   );
 }

@@ -1,4 +1,3 @@
-import { updateDocumentInFirestore } from "@/firebaseConfig";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from "expo-router";
 import { useState } from "react";
@@ -6,37 +5,6 @@ import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import Checkbox from "../components/Checkbox";
-
-const retrieveUserDocID = async () => {
-  try {
-    const value = await AsyncStorage.getItem('userDocID');
-    if (value !== null) {
-      // La valeur a été récupérée avec succès
-      console.log('Donnée récupérée :', value);
-      // Si vous avez stocké un objet JSON, vous devrez le parser :
-      return value;
-    } else {
-      console.log('Aucune donnée trouvée pour cette clé.');
-    }
-  } catch (error) {
-    // Gérer les erreurs de lecture
-    console.error('Erreur lors de la récupération des données :', error);
-  }
-};
-
-const updateInterestsLevel = async (interests: string) => {
-  const userDocID = await retrieveUserDocID();
-  if (!userDocID) {
-    console.error("User Document ID not found in AsyncStorage");
-    return;
-  }
-  try {
-    await updateDocumentInFirestore('users', userDocID, { interests });
-    console.log("User level updated successfully");
-  } catch (error) {
-    console.error("Error updating user level:", error);
-  }
-}
 
 export default function OnboardingInterests() {
   const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
@@ -78,9 +46,13 @@ export default function OnboardingInterests() {
 
       <Button
         text="Next step"
-        onPress={() => {
-          console.log('Selected interests:', selectedInterests);
-          updateInterestsLevel(selectedInterests.join(', '));
+        onPress={async () => {
+          // Stocker les intérêts dans AsyncStorage
+          let onboardingData = {};
+          const stored = await AsyncStorage.getItem('onboardingData');
+          if (stored) onboardingData = JSON.parse(stored);
+          onboardingData = { ...onboardingData, interests: selectedInterests };
+          await AsyncStorage.setItem('onboardingData', JSON.stringify(onboardingData));
           router.push('/onboarding/identity');
         }}
         disabled={selectedInterests.length === 0}

@@ -2,9 +2,11 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from "expo-router";
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Dimensions,
+  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -13,16 +15,31 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-
+import { getCurrentUser, getUserProfile } from '../controllers/userController';
 
 const { width } = Dimensions.get('window');
 
 export default function HomePage() {
   const insets = useSafeAreaInsets();
-  const userName = "Nicolas"; // Remplace par la logique utilisateur si besoin
-  const dailyProgress = 30;
-  const dailyGoal = 60;
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  // Calcul de la progression quotidienne réelle
+  const today = new Date().toISOString().slice(0, 10);
+  const dailyProgress = profile && profile.progress && profile.progress[today] ? profile.progress[today] : 0;
+  const dailyGoal = profile && profile.frequency ? Number(profile.frequency) : 60;
   const lessonProgress = 50;
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const user = getCurrentUser();
+      if (user) {
+        const data = await getUserProfile(user.uid);
+        setProfile(data);
+      }
+      setLoading(false);
+    };
+    fetchProfile();
+  }, []);
 
   const exercises = [
     {
@@ -43,17 +60,17 @@ export default function HomePage() {
     },
     {
       id: 3,
-      title: 'Images',
+      title: 'Definition matcher',
       duration: '5 minutes',
-      icon: 'image',
+      icon: 'unlink',
       color: '#6B73FF',
       backgroundColor: '#F0F1FF',
     },
     {
       id: 4,
-      title: 'Daily challenge',
+      title: 'Written comprehension',
       duration: '15 minutes',
-      icon: 'flash',
+      icon: 'reader',
       color: '#FF6B6B',
       backgroundColor: '#FFE8E8',
     },
@@ -79,10 +96,14 @@ export default function HomePage() {
     const handlePress = () => {
       if (exercise.title === 'Oral') {
         router.push('/learn/exercices/oral');
-      } else if (exercise.title === 'Daily challenge') {
+      } else if (exercise.title === 'Written comprehension') {
         router.push('/learn/exercices/write');
       } else if (exercise.title === 'Fill-the-text') {
         router.push('/learn/exercices/text-to-fill');
+      } else if (exercise.title === 'Definition matcher') {
+        router.push('/learn/exercices/matcher');
+      } else {
+        console.warn(`No route defined for exercise: ${exercise.title}`);
       }
       // Ajoute ici d'autres routes pour d'autres exercices si besoin
     };
@@ -103,6 +124,16 @@ export default function HomePage() {
   };
 
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingWrapper}>
+          <ActivityIndicator size="large" color="#47D6B6" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar backgroundColor="#F5F5F7" barStyle="dark-content" />
@@ -116,7 +147,9 @@ export default function HomePage() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.greeting}>Good morning {userName} !</Text>
+          <Text style={styles.greeting}>
+            {profile && profile.firstname ? `Good morning ${profile.firstname} !` : 'Good morning!'}
+          </Text>
         </View>
 
         {/* Daily Challenge */}
@@ -124,7 +157,7 @@ export default function HomePage() {
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Daily challenge</Text>
             <Text style={styles.progressText}>
-              {dailyProgress} min/ {dailyGoal / 60}h
+              {dailyProgress >= 60 ? (dailyProgress / 60).toFixed(2) + " h" : dailyProgress + " min"} / {dailyGoal / 60}h
             </Text>
           </View>
           {renderProgressBar(dailyProgress, dailyGoal, '#47D6B6')}
@@ -167,7 +200,9 @@ export default function HomePage() {
               <View style={styles.progressHeader}>
                 <Text style={styles.progressTitle}>Continue progression</Text>
                 <View style={styles.languageTag}>
-                  <Text style={styles.languageText}>French</Text>
+                  <Text style={styles.languageText}>
+                    {profile && profile.language ? profile.language : 'Language'}
+                  </Text>
                 </View>
               </View>
               <Text style={styles.lessonText}>Lesson 3 : Verbs</Text>
@@ -202,6 +237,12 @@ export default function HomePage() {
 }
 
 const styles = StyleSheet.create({
+  loadingWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+  },
   container: {
     flex: 1,
     backgroundColor: '#F5F5F7',
@@ -425,6 +466,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1D1D1F',
     marginBottom: 4,
+    textAlign: 'center',
   },
   exerciseDuration: {
     fontSize: 12,

@@ -56,8 +56,8 @@ export default function Select({ label, options, onSelectionChange, placeholder 
               renderItem={({ item, index }) => (
                 <TouchableOpacity
                     style={[
-                    styles.option,
-                    index === options.length - 1 && { borderBottomWidth: 0 }
+                      styles.option,
+                      index === options.length - 1 && { borderBottomWidth: 0 }
                     ]}
                     onPress={() => handleSelection(item.value)}
                 >

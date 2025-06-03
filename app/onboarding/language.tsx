@@ -1,42 +1,10 @@
-import { updateDocumentInFirestore } from "@/firebaseConfig";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from "expo-router";
 import { useState } from "react";
 import { Image, StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import Select from "../components/Select";
-
-const retrieveUserDocID = async () => {
-  try {
-    const value = await AsyncStorage.getItem('userDocID');
-    if (value !== null) {
-      // La valeur a été récupérée avec succès
-      console.log('Donnée récupérée :', value);
-      // Si vous avez stocké un objet JSON, vous devrez le parser :
-      return value;
-    } else {
-      console.log('Aucune donnée trouvée pour cette clé.');
-    }
-  } catch (error) {
-    // Gérer les erreurs de lecture
-    console.error('Erreur lors de la récupération des données :', error);
-  }
-};
-
-const updateUserLanguage = async (language: string) => {
-  const userDocID = await retrieveUserDocID();
-  if (!userDocID) {
-    console.error("User Document ID not found in AsyncStorage");
-    return;
-  }
-  try {
-    await updateDocumentInFirestore('users', userDocID, { language });
-    console.log("User language updated successfully");
-  } catch (error) {
-    console.error("Error updating user language:", error);
-  }
-}
 
 export default function OnboardingLanguage() {
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
@@ -58,20 +26,18 @@ export default function OnboardingLanguage() {
         label="Select your language"
         onSelectionChange={(value) => {
           setSelectedLanguage(value);
-          console.log("Selected language:", value);
         }}
         placeholder="Select a language"
       />
       <Button
         text="Next step"
         onPress={async () => {
-          let userDocID = retrieveUserDocID();
-          console.log("User Document ID:", userDocID);
-          if (!userDocID) {
-            console.error("User Document ID not found in AsyncStorage");
-            return;
-          }
-          await updateUserLanguage(selectedLanguage);
+          // Stocker la langue dans AsyncStorage
+          let onboardingData = {};
+          const stored = await AsyncStorage.getItem('onboardingData');
+          if (stored) onboardingData = JSON.parse(stored);
+          onboardingData = { ...onboardingData, language: selectedLanguage };
+          await AsyncStorage.setItem('onboardingData', JSON.stringify(onboardingData));
           router.push("/onboarding/level");
         }}
         disabled={!selectedLanguage || selectedLanguage === ''}

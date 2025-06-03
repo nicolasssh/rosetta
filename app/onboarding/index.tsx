@@ -1,27 +1,9 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { router } from "expo-router";
-import { addDoc, collection } from 'firebase/firestore';
 import React from "react";
-import { Alert, Image, StyleSheet, Text } from "react-native";
+import { Image, StyleSheet, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { db } from '../../firebaseConfig';
 import Button from "../components/Button";
-
-const handleAddDocument = async () => {
-  try {
-    const collectionRef = collection(db, 'users');
-    const docRef = await addDoc(collectionRef, {
-    });
-
-    AsyncStorage.setItem('userDocID', docRef.id)
-    console.log("Document written with ID: ", docRef.id);
-
-  } catch (e) {
-    // Gérer les erreurs (par exemple, problèmes de permissions, réseau, etc.)
-    console.error("Error adding document: ", e);
-    Alert.alert("Erreur", "Impossible d'ajouter le document. Veuillez vérifier la console pour plus de détails.");
-  }
-};
 
 export default function OnboardingIndex() {
   return (
@@ -35,7 +17,6 @@ export default function OnboardingIndex() {
       <Button
         text="Continue"
         onPress={() => {
-          handleAddDocument();
           router.push("/onboarding/language");
         }}
       />

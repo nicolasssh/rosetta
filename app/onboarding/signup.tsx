@@ -1,4 +1,4 @@
-import { createUserWithEmailAndPasswordFirebase, updateDocumentInFirestore } from "@/firebaseConfig";
+import { createUserWithEmailAndPasswordFirebase } from "@/firebaseConfig";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from "expo-router";
 import { useState } from "react";
@@ -6,34 +6,7 @@ import { Alert, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
 import Input from "../components/Input";
-
-const retrieveUserDocID = async () => {
-  try {
-    const value = await AsyncStorage.getItem('userDocID');
-    if (value !== null) {
-      console.log('Donnée récupérée :', value);
-      return value;
-    } else {
-      console.log('Aucune donnée trouvée pour cette clé.');
-    }
-  } catch (error) {
-    console.error('Erreur lors de la récupération des données :', error);
-  }
-};
-
-const updateUserID = async (userID: string) => {
-  const userDocID = await retrieveUserDocID();
-  if (!userDocID) {
-    console.error("User Document ID not found in AsyncStorage");
-    return;
-  }
-  try {
-    await updateDocumentInFirestore('users', userDocID, { userID });
-    console.log("User level updated successfully");
-  } catch (error) {
-    console.error("Error updating user level:", error);
-  }
-}
+import { createUserProfile } from "../controllers/userController";
 
 export default function OnboardingSignup() {
   const [email, setEmail] = useState<string>('');
@@ -42,13 +15,27 @@ export default function OnboardingSignup() {
 
   const handleSignup = async () => {
     if (email && password) {
+      // 1. Récupérer les infos de l'onboarding stockées localement
+      let onboardingData = {};
+      try {
+        const stored = await AsyncStorage.getItem('onboardingData');
+        if (stored) {
+          onboardingData = JSON.parse(stored);
+        }
+      } catch (e) {
+      }
+
+      // 2. Créer le compte (nouvel UID)
       const userId = await createUserWithEmailAndPasswordFirebase(email, password);
       if (userId) {
-        // Le compte a été créé, vous pouvez maintenant naviguer ou faire autre chose
-        console.log("Nouvel utilisateur enregistré avec UID :", userId);
-        // Exemple de navigation (si vous utilisez Expo Router)
-        // router.replace('/home');
-        return updateUserID(userId);
+        // 3. Fusionner toutes les infos collectées + email
+        const mergedProfile = { ...onboardingData, email };
+        await createUserProfile(userId, mergedProfile);
+        // Nettoyer le stockage local
+        await AsyncStorage.removeItem('onboardingData');
+        // Redirige vers la suite de l'onboarding
+        router.push('/onboarding/ready');
+        return;
       }
     } else {
       Alert.alert("Erreur", "Veuillez entrer un email et un mot de passe.");
@@ -65,7 +52,6 @@ export default function OnboardingSignup() {
           type="email"
           onValueChange={(value) => {
             setEmail(value);
-            console.log("Entered email:", value);
           }}
           placeholder="john.doe@example.com"
           initialValue={email}
@@ -75,7 +61,6 @@ export default function OnboardingSignup() {
           type="password"
           onValueChange={(value) => {
             setPassword(value);
-            console.log("Entered password:", value);
           }}
           placeholder=""
           initialValue={password}
@@ -85,7 +70,6 @@ export default function OnboardingSignup() {
           type="password"
           onValueChange={(value) => {
             setSecondPassword(value);
-            console.log("Entered re-password:", value);
           }}
           placeholder=""
           initialValue={secondPassword}
@@ -94,10 +78,7 @@ export default function OnboardingSignup() {
 
       <Button
         text="Next step"
-        onPress={() => {
-          handleSignup();
-          router.push('/onboarding/ready');
-        }}
+        onPress={handleSignup}
         disabled={!email || email === '' || !password || password === '' || !secondPassword || secondPassword === '' || password !== secondPassword}
       />
     </SafeAreaView>

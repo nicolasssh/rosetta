@@ -22,7 +22,6 @@ const signInUserWithEmailAndPasswordFirebase = async (email: string, password: s
     const user = userCredential.user;
 
     Alert.alert("Succès", `Connecté en tant que : ${user.email}`);
-    console.log("Utilisateur connecté avec succès :", user.uid);
 
     return user.uid; // Retourne l'UID de l'utilisateur
   } catch (error: any) {
@@ -47,13 +46,11 @@ const signInUserWithEmailAndPasswordFirebase = async (email: string, password: s
           errorMessage = "Identifiants invalides. Veuillez vérifier votre email et mot de passe.";
           break;
         default:
-          console.error("Erreur lors de la connexion :", error.code, error.message);
           errorMessage = `Erreur : ${error.message}`;
           break;
       }
     } else {
       errorMessage = `Erreur inattendue : ${error.message || error}`;
-      console.error("Full error object in catch block:", error);
     }
 
     Alert.alert("Erreur de connexion", errorMessage);
@@ -80,14 +77,12 @@ export default function LoginScreen() {
       const userId = await signInUserWithEmailAndPasswordFirebase(email, password);
       if (userId) {
         // L'utilisateur est connecté, vous pouvez maintenant naviguer vers votre page d'accueil
-        console.log("Utilisateur connecté avec UID :", userId);
         router.replace('/learn'); // Remplacez '/home' par la route de votre page d'accueil
       }
       // Si userId est null, la fonction signInUserWithEmailAndPasswordFirebase aura déjà affiché une alerte.
     } catch (error) {
       // Ce bloc catch est ici pour une gestion d'erreur supplémentaire au niveau du composant,
       // bien que signInUserWithEmailAndPasswordFirebase gère déjà les alertes.
-      console.error("Erreur inattendue dans handleLogin:", error);
       Alert.alert("Erreur", "Une erreur inattendue est survenue. Veuillez réessayer.");
     } finally {
       setIsLoading(false); // Désactive l'état de chargement, que la connexion ait réussi ou échoué
@@ -103,7 +98,6 @@ export default function LoginScreen() {
             type="email"
             onValueChange={(value) => {
                 setEmail(value);
-                console.log("Entered email:", value);
             }}
             placeholder="john.doe@example.com"
             initialValue={email}
@@ -113,7 +107,6 @@ export default function LoginScreen() {
             type="password"
             onValueChange={(value) => {
                 setPassword(value);
-                console.log("Entered password:", value);
             }}
             placeholder=""
             initialValue={password}
