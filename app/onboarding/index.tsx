@@ -1,7 +1,7 @@
 
 import { router } from "expo-router";
 import React from "react";
-import { Image, StyleSheet, Text } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Button from "../components/Button";
 
@@ -20,6 +20,14 @@ export default function OnboardingIndex() {
           router.push("/onboarding/language");
         }}
       />
+      <View style={{ width: '100%', marginTop: 16 }}>
+        <Button
+          text="Sign in to your account"
+          onPress={() => {
+            router.push("/onboarding/login");
+          }}
+        />
+      </View>
     </SafeAreaView>
   );
 }
