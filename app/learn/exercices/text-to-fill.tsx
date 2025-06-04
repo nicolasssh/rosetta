@@ -5,7 +5,7 @@ import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, View } f
 import Button from '../../components/Button';
 import { addExerciseTime, getCurrentUser, getUserProfile } from '../../controllers/userController';
 
-const API_URL = 'https://7d19-129-10-8-179.ngrok-free.app/exercises';
+const API_URL = 'https://f163-129-10-8-179.ngrok-free.app/exercises';
 
 const TextToFill: React.FC = () => {
   const [sentenceParts, setSentenceParts] = useState<string[]>([]);
@@ -215,6 +215,9 @@ const TextToFill: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingWrapper}>
           <ActivityIndicator size="large" color="#47D6B6" />
+          <Text style={{ color: '#222', fontFamily: 'Outfit', fontSize: 16, marginTop: 10 }}>
+            Preparing the exercice...
+          </Text>
         </View>
       </SafeAreaView>
     );

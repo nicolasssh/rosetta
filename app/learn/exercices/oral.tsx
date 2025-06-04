@@ -7,7 +7,7 @@ import Button from '../../components/Button';
 import Select from '../../components/Select';
 import { addExerciseTime, getCurrentUser } from '../../controllers/userController';
 
-const API_URL = 'https://7d19-129-10-8-179.ngrok-free.app/exercises';
+const API_URL = 'https://f163-129-10-8-179.ngrok-free.app/exercises';
 
 const OralComprehension: React.FC = () => {
   const [story, setStory] = useState('');
@@ -96,6 +96,9 @@ const OralComprehension: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingWrapper}>
           <ActivityIndicator size="large" color="#47D6B6" />
+          <Text style={{ color: '#222', fontFamily: 'Outfit', fontSize: 16, marginTop: 10 }}>
+            Preparing the exercice...
+          </Text>
         </View>
       </SafeAreaView>
     );
