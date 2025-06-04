@@ -155,7 +155,7 @@ export default function HomePage() {
         {/* Daily Challenge */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Daily challenge</Text>
+            <Text style={styles.cardTitle}>Daily progress</Text>
             <Text style={styles.progressText}>
               {dailyProgress >= 60 ? (dailyProgress / 60).toFixed(2) + " h" : dailyProgress + " min"} / {dailyGoal / 60}h
             </Text>
@@ -184,42 +184,6 @@ export default function HomePage() {
             </View>
             <TouchableOpacity onPress={() => router.push("/learn/premium")} style={styles.tryButton}>
               <Text style={styles.tryButtonText}>Try now</Text>
-            </TouchableOpacity>
-          </LinearGradient>
-        </TouchableOpacity>
-
-        {/* Continue Progression */}
-        <TouchableOpacity style={styles.progressCard} activeOpacity={0.8}>
-          <LinearGradient
-            colors={['#47D6B6', '#5CE1C3']}
-            style={styles.progressGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View style={styles.progressContent}>
-              <View style={styles.progressHeader}>
-                <Text style={styles.progressTitle}>Continue progression</Text>
-                <View style={styles.languageTag}>
-                  <Text style={styles.languageText}>
-                    {profile && profile.language ? profile.language : 'Language'}
-                  </Text>
-                </View>
-              </View>
-              <Text style={styles.lessonText}>Lesson 3 : Verbs</Text>
-              <View style={styles.lessonProgressContainer}>
-                <View style={styles.lessonProgressBar}>
-                  <View
-                    style={[
-                      styles.lessonProgressFill,
-                      { width: `${lessonProgress}%` },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.lessonProgressText}>{lessonProgress}%</Text>
-              </View>
-            </View>
-            <TouchableOpacity style={styles.continueButton}>
-              <Text style={styles.continueButtonText}>Continue</Text>
             </TouchableOpacity>
           </LinearGradient>
         </TouchableOpacity>

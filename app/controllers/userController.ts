@@ -1,3 +1,12 @@
+import { signOut, User } from 'firebase/auth';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { auth, db } from '../../firebaseConfig';
+/**
+ * Déconnecte l'utilisateur actuellement connecté via Firebase Auth.
+ */
+export async function logoutUser(): Promise<void> {
+  await signOut(auth);
+}
 /**
  * Ajoute du temps passé à la progression quotidienne de l'utilisateur (champ progress[YYYY-MM-DD]).
  * @param {string} uid - L'UID Firebase de l'utilisateur
@@ -18,9 +27,6 @@ export async function addExerciseTime(uid: string, minutes: number): Promise<voi
   } catch (error) {
   }
 }
-import { User } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../../firebaseConfig';
 
 /**
  * Récupère l'utilisateur actuellement connecté via Firebase Auth.

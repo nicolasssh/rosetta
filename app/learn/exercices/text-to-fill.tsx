@@ -5,9 +5,6 @@ import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, View } f
 import Button from '../../components/Button';
 import { addExerciseTime, getCurrentUser, getUserProfile } from '../../controllers/userController';
 
-
-
-
 const API_URL = 'https://7d19-129-10-8-179.ngrok-free.app/exercises';
 
 const TextToFill: React.FC = () => {

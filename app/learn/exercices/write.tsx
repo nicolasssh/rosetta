@@ -6,7 +6,6 @@ import Button from '../../components/Button';
 import Select from '../../components/Select';
 import { addExerciseTime, getCurrentUser } from '../../controllers/userController';
 
-
 const API_URL = 'https://7d19-129-10-8-179.ngrok-free.app/exercises';
 
 export default function WriteExercise() {
