@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../../components/Button';
 import Select from '../../components/Select';
@@ -87,82 +87,84 @@ export default function DefinitionMatcher() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.scrollContent}>
-        <Text style={styles.title}>Match each word to its definition</Text>
-        <View style={styles.textCard}>
-          <Text style={styles.textTitle}>Mots</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginBottom: 10, width: '100%' }}>
-            {current.words?.map((w: string, i: number) => (
-              <View key={w} style={styles.wordBadge}>
-                <Text style={styles.wordText}>{w}</Text>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.scrollContent}>
+          <Text style={styles.title}>Match each word to its definition</Text>
+          <View style={styles.textCard}>
+            <Text style={styles.textTitle}>Mots</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, justifyContent: 'center', marginBottom: 10, width: '100%' }}>
+              {current.words?.map((w: string, i: number) => (
+                <View key={w} style={styles.wordBadge}>
+                  <Text style={styles.wordText}>{w}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+          <Text style={styles.subtitle}>Sélectionne la bonne définition pour chaque mot</Text>
+          <View style={{ gap: 20, width: '100%', marginBottom: 30 }}>
+            {current.words?.map((word: string, i: number) => (
+              <View key={word + '-' + i} style={{ width: '100%' }}>
+                <Select
+                  label={word}
+                  options={Array.isArray(current.definitions)
+                    ? current.definitions.map((def: string, idx: number) => ({
+                        label: def,
+                        value: `${i}-${def}`
+                      }))
+                    : []
+                  }
+                  onSelectionChange={(value) => handleSelect(i, value)}
+                  placeholder="Choisir une définition"
+                  style={{ marginBottom: 0, width: '100%' }}
+                  labelStyle={{ color: '#000' }}
+                />
+                {showResult && (
+                  <View style={{ marginTop: 2, marginLeft: 4 }}>
+                    <Text style={{
+                      color: answers[i] && current.answers && answers[i].endsWith(current.answers[i].definition) ? '#47D6B6' : '#E76F51',
+                      fontFamily: 'OutfitBold',
+                      fontSize: 15,
+                    }}>
+                      {answers[i] && current.answers && answers[i].endsWith(current.answers[i].definition)
+                        ? 'Correct!'
+                        : `Incorrect. Correct answer: ${current.answers?.[i]?.definition}`}
+                    </Text>
+                    {answers[i] && current.answers && !answers[i].endsWith(current.answers[i].definition) && current.answers[i].translation && (
+                      <Text style={{ color: '#222', fontFamily: 'Outfit', fontSize: 14, marginTop: 2 }}>
+                        {current.answers[i].translation}
+                      </Text>
+                    )}
+                  </View>
+                )}
               </View>
             ))}
           </View>
-        </View>
-        <Text style={styles.subtitle}>Sélectionne la bonne définition pour chaque mot</Text>
-        <View style={{ gap: 20, width: '100%', marginBottom: 30 }}>
-          {current.words?.map((word: string, i: number) => (
-            <View key={word + '-' + i} style={{ width: '100%' }}>
-              <Select
-                label={word}
-                options={Array.isArray(current.definitions)
-                  ? current.definitions.map((def: string, idx: number) => ({
-                      label: def,
-                      value: `${i}-${def}`
-                    }))
-                  : []
-                }
-                onSelectionChange={(value) => handleSelect(i, value)}
-                placeholder="Choisir une définition"
-                style={{ marginBottom: 0, width: '100%' }}
-                labelStyle={{ color: '#000' }}
-              />
-              {showResult && (
-                <View style={{ marginTop: 2, marginLeft: 4 }}>
-                  <Text style={{
-                    color: answers[i] && current.answers && answers[i].endsWith(current.answers[i].definition) ? '#47D6B6' : '#E76F51',
-                    fontFamily: 'OutfitBold',
-                    fontSize: 15,
-                  }}>
-                    {answers[i] && current.answers && answers[i].endsWith(current.answers[i].definition)
-                      ? 'Correct!'
-                      : `Incorrect. Correct answer: ${current.answers?.[i]?.definition}`}
-                  </Text>
-                  {answers[i] && current.answers && !answers[i].endsWith(current.answers[i].definition) && current.answers[i].translation && (
-                    <Text style={{ color: '#222', fontFamily: 'Outfit', fontSize: 14, marginTop: 2 }}>
-                      {current.answers[i].translation}
-                    </Text>
-                  )}
-                </View>
-              )}
+          {showResult && (
+            <View style={{ marginBottom: 16, width: '100%' }}>
+              <Text style={{ color: '#3D5A80', fontFamily: 'OutfitBold', fontSize: 18, textAlign: 'center', marginBottom: 8 }}>
+                Score: {correctCount}/{current.words?.length || 0}
+              </Text>
             </View>
-          ))}
-        </View>
-        {showResult && (
-          <View style={{ marginBottom: 16, width: '100%' }}>
-            <Text style={{ color: '#3D5A80', fontFamily: 'OutfitBold', fontSize: 18, textAlign: 'center', marginBottom: 8 }}>
-              Score: {correctCount}/{current.words?.length || 0}
-            </Text>
+          )}
+          <View style={{ width: '100%' }}>
+            <Button
+              text={showResult ? (exerciseIndex < exercises.length - 1 ? 'Next set' : 'Restart') : 'Finish'}
+              onPress={async () => {
+                if (!showResult) {
+                  await handleFinish();
+                } else if (exerciseIndex < exercises.length - 1) {
+                  setExerciseIndex(exerciseIndex + 1);
+                  setAnswers(Array((exercises[exerciseIndex + 1]?.words?.length || 0)).fill(null));
+                  setShowResult(false);
+                } else {
+                  await fetchExercises();
+                }
+              }}
+              disabled={!allAnswered && !showResult}
+            />
           </View>
-        )}
-        <View style={{ width: '100%' }}>
-          <Button
-            text={showResult ? (exerciseIndex < exercises.length - 1 ? 'Next set' : 'Restart') : 'Finish'}
-            onPress={async () => {
-              if (!showResult) {
-                await handleFinish();
-              } else if (exerciseIndex < exercises.length - 1) {
-                setExerciseIndex(exerciseIndex + 1);
-                setAnswers(Array((exercises[exerciseIndex + 1]?.words?.length || 0)).fill(null));
-                setShowResult(false);
-              } else {
-                await fetchExercises();
-              }
-            }}
-            disabled={!allAnswered && !showResult}
-          />
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
