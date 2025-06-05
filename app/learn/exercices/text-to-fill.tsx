@@ -3,9 +3,10 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 // import { DraxView } from 'react-native-drax';
 import Button from '../../components/Button';
-import { addExerciseTime, getCurrentUser, getUserProfile } from '../../controllers/userController';
+import { fetchExerciseForUser } from '../../controllers/exerciseController';
+import { addExerciseTime } from '../../controllers/userController';
 
-const API_URL = 'https://f163-129-10-8-179.ngrok-free.app/exercises';
+const API_URL = 'https://ba3f-129-10-8-179.ngrok-free.app/exercises';
 
 const TextToFill: React.FC = () => {
   const [sentenceParts, setSentenceParts] = useState<string[]>([]);
@@ -23,43 +24,8 @@ const TextToFill: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const user = getCurrentUser();
-        if (!user) {
-          setError('Utilisateur non connecté');
-          setLoading(false);
-          return;
-        }
-        const profile = await getUserProfile(user.uid);
-        if (!profile) {
-          setError('Profil utilisateur non trouvé');
-          setLoading(false);
-          return;
-        }
-        const interests: string[] = Array.isArray(profile.interests) ? profile.interests : [];
-        const level: string = profile.level || 'beginner';
-        if (!interests.length) {
-          setError('Aucun intérêt trouvé dans le profil utilisateur');
-          setLoading(false);
-          return;
-        }
-        // Choisir un intérêt au hasard
-        const context = interests[Math.floor(Math.random() * interests.length)];
-        const body = {
-          type: 'fillInTheBlanks',
-          context,
-          level,
-          count: 1,
-        };
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        if (!response.ok) throw new Error('Erreur API');
-        const data = await response.json();
-        // On suppose que la réponse est un objet avec une clé exercises (tableau)
+        const data = await fetchExerciseForUser('fillInTheBlanks', 1);
         const exerciseObj = Array.isArray(data.exercises) ? data.exercises[0] : data;
-        // Découper le texte sur les blancs
         const textParts = exerciseObj.text.split('___');
         setSentenceParts(textParts);
         setAnswers({
@@ -107,13 +73,15 @@ const TextToFill: React.FC = () => {
 
   // handleFinish vérifie la phrase complète avec la correction
   const handleFinish = async () => {
-    const user = getCurrentUser();
-    if (user) {
-      await addExerciseTime(user.uid, 7); // 7 minutes pour l'exemple
+    try {
+      const { getCurrentUser } = await import('../../controllers/userController');
+      const user = getCurrentUser();
+      if (user) {
+        await addExerciseTime(user.uid, 7); // 7 minutes pour l'exemple
+      }
+    } catch (e) {
+      // ignore erreur
     }
-    // Log des phrases pour debug
-    const userSentence = getCompletedSentence();
-    const expected = answers && answers.answer ? answers.answer : '';
     setShowResult(true);
   };
 
@@ -123,40 +91,7 @@ const TextToFill: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const user = getCurrentUser();
-      if (!user) {
-        setError('Utilisateur non connecté');
-        setLoading(false);
-        return;
-      }
-      const profile = await getUserProfile(user.uid);
-      if (!profile) {
-        setError('Profil utilisateur non trouvé');
-        setLoading(false);
-        return;
-      }
-      const interests: string[] = Array.isArray(profile.interests) ? profile.interests : [];
-      const level: string = profile.level || 'beginner';
-      if (!interests.length) {
-        setError('Aucun intérêt trouvé dans le profil utilisateur');
-        setLoading(false);
-        return;
-      }
-      // Choisir un intérêt au hasard
-      const context = interests[Math.floor(Math.random() * interests.length)];
-      const body = {
-        type: 'fillInTheBlanks',
-        context,
-        level,
-        count: 1,
-      };
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!response.ok) throw new Error('Erreur API');
-      const data = await response.json();
+      const data = await fetchExerciseForUser('fillInTheBlanks', 1);
       const exerciseObj = Array.isArray(data.exercises) ? data.exercises[0] : data;
       const textParts = exerciseObj.text.split('___');
       setSentenceParts(textParts);
@@ -281,6 +216,12 @@ const TextToFill: React.FC = () => {
                 <>
                   <Text style={{ color: '#E76F51', fontFamily: 'OutfitBold', fontSize: 18, textAlign: 'center', marginBottom: 8 }}>
                     No! Incorrect answer.
+                  </Text>
+                  <Text style={{ color: '#3D5A80', fontFamily: 'OutfitBold', fontSize: 16, textAlign: 'center', marginBottom: 4 }}>
+                    Correct answer :
+                  </Text>
+                  <Text style={{ color: '#222', fontFamily: 'Outfit', fontSize: 16, textAlign: 'center', marginBottom: 8 }}>
+                    {answers.answer}
                   </Text>
                   {Array.isArray(answers.blanksCorrection) && answers.blanksCorrection.length > 0 && (
                     <View style={{ backgroundColor: '#F5F5F7', borderRadius: 10, padding: 10, marginBottom: 8 }}>

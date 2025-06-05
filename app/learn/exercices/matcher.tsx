@@ -3,9 +3,10 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../../components/Button';
 import Select from '../../components/Select';
-import { addExerciseTime, getCurrentUser } from '../../controllers/userController';
+import { fetchExerciseForUser } from '../../controllers/exerciseController';
+import { addExerciseTime } from '../../controllers/userController';
 
-const API_URL = 'https://f163-129-10-8-179.ngrok-free.app/exercises';
+const API_URL = 'https://ba3f-129-10-8-179.ngrok-free.app/exercises';
 
 export default function DefinitionMatcher() {
   const [exerciseIndex, setExerciseIndex] = useState(0);
@@ -20,27 +21,7 @@ export default function DefinitionMatcher() {
     setLoading(true);
     setError(null);
     try {
-      const user = getCurrentUser();
-      if (!user) {
-        setError('Utilisateur non connecté');
-        setLoading(false);
-        return;
-      }
-      const level = 'beginner';
-      const context = 'travel';
-      const body = {
-        type: 'definitionMatcher',
-        context,
-        level,
-        count: 3,
-      };
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!response.ok) throw new Error('Erreur API');
-      const data = await response.json();
+      const data = await fetchExerciseForUser('definitionMatcher', 3);
       setExercises(data.exercises || []);
       setExerciseIndex(0);
       setAnswers(Array((data.exercises?.[0]?.words?.length || 0)).fill(null));
@@ -63,9 +44,14 @@ export default function DefinitionMatcher() {
   };
 
   const handleFinish = async () => {
-    const user = getCurrentUser();
-    if (user) {
-      await addExerciseTime(user.uid, 10);
+    try {
+      const { getCurrentUser } = await import('../../controllers/userController');
+      const user = getCurrentUser();
+      if (user) {
+        await addExerciseTime(user.uid, 10);
+      }
+    } catch (e) {
+      // ignore erreur
     }
     setShowResult(true);
   };

@@ -4,9 +4,10 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '../../components/Button';
 import Select from '../../components/Select';
-import { addExerciseTime, getCurrentUser } from '../../controllers/userController';
+import { fetchExerciseForUser } from '../../controllers/exerciseController';
+import { addExerciseTime } from '../../controllers/userController';
 
-const API_URL = 'https://f163-129-10-8-179.ngrok-free.app/exercises';
+const API_URL = 'https://ba3f-129-10-8-179.ngrok-free.app/exercises';
 
 export default function WriteExercise() {
   const [text, setText] = useState('');
@@ -21,28 +22,7 @@ export default function WriteExercise() {
     setLoading(true);
     setError(null);
     try {
-      const user = getCurrentUser();
-      if (!user) {
-        setError('Utilisateur non connecté');
-        setLoading(false);
-        return;
-      }
-      // Adapter selon ton modèle utilisateur si besoin
-      const level = 'beginner';
-      const context = 'general';
-      const body = {
-        type: 'comprehension',
-        context,
-        level,
-        count: 1,
-      };
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!response.ok) throw new Error('Erreur API');
-      const data = await response.json();
+      const data = await fetchExerciseForUser('comprehension', 1);
       const exerciseObj = Array.isArray(data.exercises) ? data.exercises[0] : data;
       setText(exerciseObj.text || '');
       setQuestions(exerciseObj.questions || []);
@@ -62,9 +42,14 @@ export default function WriteExercise() {
 
   // Ajout du temps à la fin de l'exercice (exemple : 15 minutes)
   const handleFinish = async () => {
-    const user = getCurrentUser();
-    if (user) {
-      await addExerciseTime(user.uid, 15); // 15 minutes pour l'exemple
+    try {
+      const { getCurrentUser } = await import('../../controllers/userController');
+      const user = getCurrentUser();
+      if (user) {
+        await addExerciseTime(user.uid, 15); // 15 minutes pour l'exemple
+      }
+    } catch (e) {
+      // ignore erreur
     }
     setShowResult(true);
   };

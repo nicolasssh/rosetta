@@ -264,14 +264,6 @@ function getAvatarUrl(name: string) {
               <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={handleCancel} disabled={saving}>
                 <Text style={styles.buttonText}>Cancel</Text>
               </TouchableOpacity>
-              {/* Delete my account: always render in editing mode, on its own line */}
-              <View style={{ width: '100%', marginTop: 16 }}>
-                <TouchableOpacity onPress={handleDeleteAccount} disabled={deleting} style={{ alignSelf: 'center', opacity: deleting ? 0.5 : 0.4 }}>
-                  <Text style={{ color: '#E76F51', fontSize: 13, textDecorationLine: 'underline', fontFamily: 'Outfit', textAlign: 'center' }}>
-                    Delete my account
-                  </Text>
-                </TouchableOpacity>
-              </View>
             </>
           ) : (
             <>
@@ -284,6 +276,13 @@ function getAvatarUrl(name: string) {
             </>
           )}
         </View>
+        <View style={{ width: '100%', marginTop: 16 }}>
+          <TouchableOpacity onPress={handleDeleteAccount} disabled={deleting} style={{ alignSelf: 'center', opacity: deleting ? 0.5 : 0.4 }}>
+            <Text style={{ color: '#E76F51', fontSize: 13, textDecorationLine: 'underline', fontFamily: 'Outfit', textAlign: 'center' }}>
+              Delete my account
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -293,7 +292,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F5F7',
-    padding: 20,
+    paddingHorizontal: 20,
   },
   profileHeader: {
     alignItems: 'center',

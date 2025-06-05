@@ -22,7 +22,7 @@ export default function OnboardingLevel() {
         options={[
           { label: 'Beginner', value: 'beginner' },
           { label: 'Intermediate', value: 'intermediate' },
-          { label: 'Advanced', value: 'advaced' },
+          { label: 'Advanced', value: 'advanced' },
         ]}
         label="Select your level"
         onSelectionChange={(value) => {
